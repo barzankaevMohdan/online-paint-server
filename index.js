@@ -7,10 +7,11 @@ const fs = require('fs')
 const path = require('path')
 
 const PORT = process.env.PORT || 5000
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000'
 
 app.use(cors({
   credentials: true,
-  origin: process.env.CLIENT_URL
+  origin: CLIENT_URL,
 }))
 
 app.use(express.json())
@@ -32,8 +33,10 @@ app.ws('/', (ws, req) => {
 
 app.post('/image', (req, res) => {
   try {
-    const data = req.body.img.replace(`data:image/png;base64,`, '')
-    fs.writeFileSync(path.resolve(__dirname, 'files', `${req.query.id}.jpg`), data, 'base64')
+    const {img} = req.body
+    const {id} = req.query
+    const data = img.replace(`data:image/png;base64,`, '')
+    fs.writeFileSync(path.resolve(__dirname, 'files', `${id}.jpg`), data, 'base64')
     return res.json({message: 'image saved'})
   } catch (e) {
     console.log(e)
@@ -43,7 +46,8 @@ app.post('/image', (req, res) => {
 
 app.get('/image', (req, res) => {
   try {
-    const file = fs.readFileSync(path.resolve(__dirname, 'files', `${req.query.id}.jpg`))
+    const {id} = req.query
+    const file = fs.readFileSync(path.resolve(__dirname, 'files', `${id}.jpg`))
     const data = `data:image/png;base64,` + file.toString('base64')
     return res.json(data)
   } catch (e) {
